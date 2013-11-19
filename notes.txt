@@ -1,0 +1,82 @@
+Dataset is chronological, training includes 2012 and Jan-Apr 2013, test May-Sep 17 2013.  There is a major increase in the number of entries from the "remote_api_created" source starting around Nov 2012.  This switch is around the 40000th entry.  
+
+In [365]: np.histogram(api_inds[0],bins = np.array(range(24))*10000)
+Out[365]: 
+(array([ 163,  286,  205, 1393, 8841, 9034, 9008, 8906, 8790, 8831, 9048,
+       8814, 8984, 8800, 8910, 8639, 8720, 6984, 8052, 5102, 8048, 8155,
+       2529]),
+ array([     0,  10000,  20000,  30000,  40000,  50000,  60000,  70000,
+        80000,  90000, 100000, 110000, 120000, 130000, 140000, 150000,
+       160000, 170000, 180000, 190000, 200000, 210000, 220000, 230000]))
+
+Since the test data chronologically follows the training data, it more closely matches the data following this transition.  Which significantly skews that data to fewer views:
+
+In [362]: nonapi_inds = np.where(train_df.source != 'remote_api_created')[0]
+
+In [363]: train_df.num_views.loc[nonapi_inds].mean()
+Out[363]: 26.5189199695008
+
+In [364]: train_df.num_views.loc[api_inds].mean()
+Out[364]: 1.2339319773172386
+
+Votes and comments 
+
+There are 20k+ unique "summary" fields in the training set, 1199 of these are also in the test set (755 appear more than once there, 290ish more than 10).
+
+Ran Multinomial Naive Bayes on the corpus of terms in the training set descriptions:
+train_df = pd.read_csv("train.csv", quotechar = '"')
+corpus = statement_corpus(train_df.description)
+corp_tab_8200 = corp_table(corpus, train_df.description)
+corp_tab_8200csr = corp_tab_8200.tocsr() #memory blow-up when slicing by rows as lil-matrix.
+multnball_views = sklearn.naive_bayes.MultinomialNB()
+#…comments, votes
+multnball_views.fit(corp_tab_8200, train_df.num_views)
+pkl.dump(multnball_views, open('naive_bayes_mulinomial_train_description_views_model.pkl','wb'))
+pkl.dump(multnball_comments, open('naive_bayes_mulinomial_train_description_comments_model.pkl','wb'))pkl.dump(corp_mod, open('naive_bayes_mulinomial_train_description_corpus_and_model_tuple.pkl','wb')) #num_votes and corpus
+
+
+In [462]: multnb40ktoend_votes = sklearn.naive_bayes.MultinomialNB()
+
+In [463]: multnb40ktoend_views = sklearn.naive_bayes.MultinomialNB()
+
+In [464]: multnb40ktoend_comments = sklearn.naive_bayes.MultinomialNB()
+
+In [465]: multnb40ktoend_comments.fit(corp_tab_8200csr[40000:,:],train_df.num_comments.loc[40000:])
+Out[465]: MultinomialNB(alpha=1.0, class_prior=None, fit_prior=True)
+
+In [466]: multnb40ktoend_votes.fit(corp_tab_8200csr[40000:,:],train_df.num_votes.loc[40000:])
+Out[466]: MultinomialNB(alpha=1.0, class_prior=None, fit_prior=True)
+
+In [467]: multnb40ktoend_views.fit(corp_tab_8200csr[40000:,:],train_df.num_views.loc[40000:])
+Out[467]: MultinomialNB(alpha=1.0, class_prior=None, fit_prior=True)
+In [469]: views_40kend = multnb40ktoend_views.predict(test_corp_tab)
+
+In [470]: votes_40kend = multnb40ktoend_votes.predict(test_corp_tab)
+
+In [471]: comments_40kend = multnb40ktoend_comments.predict(test_corp_tab)
+In [472]: test_df['views_40kend'] = views_40kend
+
+In [473]: test_df['votes_40kend'] = votes_40kend
+
+In [474]: test_df['comments_40kend'] = comments_40kend
+
+In [475]: test_df[['id','views_40kend','votes_40kend','comments_40kend']].to_csv('naive_bayes_predict_40ktoend.csv', header = ['id','num_views','num_votes','num_comments'], index = False)
+
+In [500]: pkl.dump(multnb40ktoend_views,open('multnb40ktoend_views.pkl','wb'))
+In [502]: pkl.dump(multnb40ktoend_votes,open('multnb40ktoend_votes.pkl','wb'))
+In [503]: pkl.dump(multnb40ktoend_comments,open('multnb40ktoend_comments.pkl','wb'))
+
+In [611]: multnb_src_id_views = sklearn.naive_bayes.MultinomialNB()
+
+In [612]: multnb_src_id_views.fit(train_df_src_id[40000:,:],train_df.num_views.loc[40000:])
+In [618]: test_df_src_id = source_numerator(test_df)
+In [620]: test_df_src_id = source_numerator(test_df)
+In [622]: test_df['views_src_tag'] = multnb_src_id_views.predict(test_df_src_id)
+
+In [623]: test_df[['id','views_src_tag','votes_40kend','comments_40kend']].to_csv('naive_bayes_predict_40ktoend_viewsonsrc-tag.csv', header = ['id','num_views','num_votes','num_comments'], index = False)
+
+In [624]: pkl.dump(multnb_src_id_views,open('multnb_src_id_views.pkl','wb'))
+
+
+
+
