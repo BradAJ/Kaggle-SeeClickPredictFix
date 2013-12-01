@@ -1,3 +1,7 @@
+__author__ = "Brad Jacobs"
+__email__ = "bradaj@gmail.com"
+__date__ = "Dec. 2013"
+
 import numpy as np
 import pandas as pd
 import math
@@ -291,6 +295,6 @@ def main():
 
     test_df[['id', 'num_views', 'num_votes', 'num_comments']].to_csv('test_preds.csv', index = False)
 
-if __name__ == "__main__":
-    main()
+#if __name__ == "__main__":
+#    main()
     

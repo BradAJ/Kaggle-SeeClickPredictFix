@@ -1,0 +1,31 @@
+Author: Brad Jacobs, 12/2013.
+
+Python code written for entries to the
+Kaggle-SeeClickPredictFix Competition:
+http://www.kaggle.com/c/see-click-predict-fix
+
+MY KAGGLE PROFILE:
+http://www.kaggle.com/users/100540/bradaj
+
+CONTENTS:
+seeclickfix.py: Python code for training/predicting SeeClickFix data
+
+DESCRIPTION:
+The SeeClickPredictFix contest goal was to predict the number of votes,
+views, and comments that an "issue" submitted to the 311 service of
+four cities in the US will receive, with evaluation based on RMSLE.
+
+The various functions in seeclickfix.py have description docstrings,
+but briefly, their main use is to generate sparse matrices from the data
+such as a word count matrix from the "description" field of training set.
+The tables generated can be used in various models but I include one
+simple version that uses Naive Bayes.
+
+The code is intended for interactive use, but also included is a function
+main() that will take the training and test data and generate predictions
+that can be submitted to Kaggle.  See the docstring of main() for more
+details.  To generate these predictions, uncomment the following lines
+at the end of seeclickfix.py, then run the file from the command line:
+
+if __name__ == "__main__":
+    main()
