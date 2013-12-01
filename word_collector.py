@@ -50,7 +50,7 @@ def statement_corpus(stmt_list):
                 corpus.add(stem)
     return corpus
 
-def corp_table(corpus, stmt_list, stem = True):
+def corp_table(corpus, stmt_list, stem = True, corp_dict = None):
     """
     set(strs), [list of strs] -> scipy.sparse.lil_matrix()
 
@@ -72,9 +72,14 @@ def corp_table(corpus, stmt_list, stem = True):
             for stemmed in stmt_stemset:
                 if stemmed in corpus:
                     corp_tab[counter, corp_list.index(stemmed)] = stmt_stemlist.count(stemmed)
+                    if corp_dict is not None:
+                        corp_dict[stemmed] += 1
         counter += 1
 
-    return corp_tab.tocsr()
+    if corp_dict is not None:
+        return corp_tab.tocsr(), corp_dict
+    else:
+        return corp_tab.tocsr()
 
 def rmsle(pred, ans):
     """
